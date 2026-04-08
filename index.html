@@ -1,0 +1,2832 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="initial-scale=1,user-scalable=no,maximum-scale=1,width=device-width">
+        <meta name="mobile-web-app-capable" content="yes">
+        <meta name="apple-mobile-web-app-capable" content="yes">
+        <link rel="stylesheet" href="css/leaflet.css">
+        <link rel="stylesheet" href="css/L.Control.Layers.Tree.css">
+        <link rel="stylesheet" href="css/L.Control.Locate.min.css">
+        <link rel="stylesheet" href="css/qgis2web.css">
+        <link rel="stylesheet" href="css/fontawesome-all.min.css">
+        <link rel="stylesheet" href="css/leaflet.photon.css">
+        <style>
+        html, body, #map {
+            width: 100%;
+            height: 100%;
+            padding: 0;
+            margin: 0;
+        }
+        </style>
+        <title></title>
+    </head>
+    <body>
+        <div id="map">
+        </div>
+        <script src="js/qgis2web_expressions.js"></script>
+        <script src="js/leaflet.js"></script>
+        <script src="js/L.Control.Layers.Tree.min.js"></script>
+        <script src="js/L.Control.Locate.min.js"></script>
+        <script src="js/leaflet.rotatedMarker.js"></script>
+        <script src="js/leaflet.pattern.js"></script>
+        <script src="js/leaflet-hash.js"></script>
+        <script src="js/Autolinker.min.js"></script>
+        <script src="js/rbush.min.js"></script>
+        <script src="js/labelgun.min.js"></script>
+        <script src="js/labels.js"></script>
+        <script src="js/leaflet.photon.js"></script>
+        <script src="data/PhngHaLi_0.js"></script>
+        <script src="data/Vtr4T150mn200m_2.js"></script>
+        <script src="data/Vtr1TtuynngVnhai4n50m_3.js"></script>
+        <script src="data/Tuynngchnh_4.js"></script>
+        <script src="data/Tuynngvnhai4_5.js"></script>
+        <script src="data/Gitbithngvt_6.js"></script>
+        <script>
+        var map = L.map('map', {
+            zoomControl:false, maxZoom:28, minZoom:1
+        }).fitBounds([[11.111383686628885,106.6607044783857],[11.116335037008694,106.67012556315274]]);
+        var hash = new L.Hash(map);
+        map.attributionControl.setPrefix('<a href="https://github.com/tomchadwin/qgis2web" target="_blank">qgis2web</a> &middot; <a href="https://leafletjs.com" title="A JS library for interactive maps">Leaflet</a> &middot; <a href="https://qgis.org">QGIS</a>');
+        var autolinker = new Autolinker({truncate: {length: 30, location: 'smart'}});
+        // remove popup's row if "visible-with-data"
+        function removeEmptyRowsFromPopupContent(content, feature) {
+         var tempDiv = document.createElement('div');
+         tempDiv.innerHTML = content;
+         var rows = tempDiv.querySelectorAll('tr');
+         for (var i = 0; i < rows.length; i++) {
+             var td = rows[i].querySelector('td.visible-with-data');
+             var key = td ? td.id : '';
+             if (td && td.classList.contains('visible-with-data') && feature.properties[key] == null) {
+                 rows[i].parentNode.removeChild(rows[i]);
+             }
+         }
+         return tempDiv.innerHTML;
+        }
+        // modify popup if contains media
+        function addClassToPopupIfMedia(content, popup) {
+            var tempDiv = document.createElement('div');
+            tempDiv.innerHTML = content;
+            var imgTd = tempDiv.querySelector('td img');
+            if (imgTd) {
+                var src = imgTd.getAttribute('src');
+                if (/\.(jpg|jpeg|png|gif|bmp|webp|avif)$/i.test(src)) {
+                    popup._contentNode.classList.add('media');
+                    setTimeout(function() {
+                        popup.update();
+                    }, 10);
+                } else if (/\.(mp3|wav|ogg|aac)$/i.test(src)) {
+                    var audio = document.createElement('audio');
+                    audio.controls = true;
+                    audio.src = src;
+                    imgTd.parentNode.replaceChild(audio, imgTd);
+                    popup._contentNode.classList.add('media');
+                    setTimeout(function() {
+                        popup.setContent(tempDiv.innerHTML);
+                        popup.update();
+                    }, 10);
+                } else if (/\.(mp4|webm|ogg|mov)$/i.test(src)) {
+                    var video = document.createElement('video');
+                    video.controls = true;
+                    video.src = src;
+                    video.style.width = "400px";
+                    video.style.height = "300px";
+                    video.style.maxHeight = "60vh";
+                    video.style.maxWidth = "60vw";
+                    imgTd.parentNode.replaceChild(video, imgTd);
+                    popup._contentNode.classList.add('media');
+                    // Aggiorna il popup quando il video carica i metadati
+                    video.addEventListener('loadedmetadata', function() {
+                        popup.update();
+                    });
+                    setTimeout(function() {
+                        popup.setContent(tempDiv.innerHTML);
+                        popup.update();
+                    }, 10);
+                } else {
+                    popup._contentNode.classList.remove('media');
+                }
+            } else {
+                popup._contentNode.classList.remove('media');
+            }
+        }
+        var zoomControl = L.control.zoom({
+            position: 'topleft'
+        }).addTo(map);
+        L.control.locate({locateOptions: {maxZoom: 19}}).addTo(map);
+        var bounds_group = new L.featureGroup([]);
+        function setBounds() {
+        }
+        function pop_PhngHaLi_0(feature, layer) {
+            var popupContent = '<table>\
+                    <tr>\
+                        <th scope="row">OBJECTID</th>\
+                        <td class="visible-with-data" id="OBJECTID">' + (feature.properties['OBJECTID'] !== null ? autolinker.link(String(feature.properties['OBJECTID']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td class="visible-with-data" id="tenTinh" colspan="2"><strong>tenTinh</strong><br />' + (feature.properties['tenTinh'] !== null ? autolinker.link(String(feature.properties['tenTinh']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">maTinh</th>\
+                        <td class="visible-with-data" id="maTinh">' + (feature.properties['maTinh'] !== null ? autolinker.link(String(feature.properties['maTinh']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">maTinh_BNV</th>\
+                        <td class="visible-with-data" id="maTinh_BNV">' + (feature.properties['maTinh_BNV'] !== null ? autolinker.link(String(feature.properties['maTinh_BNV']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">tenXa</th>\
+                        <td class="visible-with-data" id="tenXa">' + (feature.properties['tenXa'] !== null ? autolinker.link(String(feature.properties['tenXa']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">maXa</th>\
+                        <td class="visible-with-data" id="maXa">' + (feature.properties['maXa'] !== null ? autolinker.link(String(feature.properties['maXa']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">maXa_BNV</th>\
+                        <td class="visible-with-data" id="maXa_BNV">' + (feature.properties['maXa_BNV'] !== null ? autolinker.link(String(feature.properties['maXa_BNV']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">danSo</th>\
+                        <td class="visible-with-data" id="danSo">' + (feature.properties['danSo'] !== null ? autolinker.link(String(feature.properties['danSo']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">dienTich</th>\
+                        <td class="visible-with-data" id="dienTich">' + (feature.properties['dienTich'] !== null ? autolinker.link(String(feature.properties['dienTich']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">nghiQuyet</th>\
+                        <td class="visible-with-data" id="nghiQuyet">' + (feature.properties['nghiQuyet'] !== null ? autolinker.link(String(feature.properties['nghiQuyet']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">ghiChu</th>\
+                        <td class="visible-with-data" id="ghiChu">' + (feature.properties['ghiChu'] !== null ? autolinker.link(String(feature.properties['ghiChu']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">SHAPE_Leng</th>\
+                        <td class="visible-with-data" id="SHAPE_Leng">' + (feature.properties['SHAPE_Leng'] !== null ? autolinker.link(String(feature.properties['SHAPE_Leng']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">SHAPE_Area</th>\
+                        <td class="visible-with-data" id="SHAPE_Area">' + (feature.properties['SHAPE_Area'] !== null ? autolinker.link(String(feature.properties['SHAPE_Area']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                </table>';
+            var content = removeEmptyRowsFromPopupContent(popupContent, feature);
+			layer.on('popupopen', function(e) {
+				addClassToPopupIfMedia(content, e.popup);
+			});
+			layer.bindPopup(content, { maxHeight: 400 });
+        }
+
+        function style_PhngHaLi_0_0() {
+            return {
+                pane: 'pane_PhngHaLi_0',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(255,229,235,1.0)',
+                interactive: true,
+            }
+        }
+        map.createPane('pane_PhngHaLi_0');
+        map.getPane('pane_PhngHaLi_0').style.zIndex = 400;
+        map.getPane('pane_PhngHaLi_0').style['mix-blend-mode'] = 'normal';
+        var layer_PhngHaLi_0 = new L.geoJson(json_PhngHaLi_0, {
+            attribution: '',
+            interactive: true,
+            dataVar: 'json_PhngHaLi_0',
+            layerName: 'layer_PhngHaLi_0',
+            pane: 'pane_PhngHaLi_0',
+            onEachFeature: pop_PhngHaLi_0,
+            style: style_PhngHaLi_0_0,
+        });
+        bounds_group.addLayer(layer_PhngHaLi_0);
+        map.addLayer(layer_PhngHaLi_0);
+        map.createPane('pane_IDW_Git1_1');
+        map.getPane('pane_IDW_Git1_1').style.zIndex = 401;
+        var img_IDW_Git1_1 = 'data/IDW_Git1_1.png';
+        var img_bounds_IDW_Git1_1 = [[11.112072462306756,106.65801350324594],[11.115975800676356,106.69415629874715]];
+        var layer_IDW_Git1_1 = new L.imageOverlay(img_IDW_Git1_1,
+                                              img_bounds_IDW_Git1_1,
+                                              {pane: 'pane_IDW_Git1_1'});
+        bounds_group.addLayer(layer_IDW_Git1_1);
+        map.addLayer(layer_IDW_Git1_1);
+        function pop_Vtr4T150mn200m_2(feature, layer) {
+            var popupContent = '<table>\
+                    <tr>\
+                        <th scope="row">id</th>\
+                        <td class="visible-with-data" id="id">' + (feature.properties['id'] !== null ? autolinker.link(String(feature.properties['id']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                </table>';
+            var content = removeEmptyRowsFromPopupContent(popupContent, feature);
+			layer.on('popupopen', function(e) {
+				addClassToPopupIfMedia(content, e.popup);
+			});
+			layer.bindPopup(content, { maxHeight: 400 });
+        }
+
+        function style_Vtr4T150mn200m_2_0() {
+            return {
+                pane: 'pane_Vtr4T150mn200m_2',
+                opacity: 1,
+                color: 'rgba(238,106,11,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fillOpacity: 0,
+                interactive: false,
+            }
+        }
+        map.createPane('pane_Vtr4T150mn200m_2');
+        map.getPane('pane_Vtr4T150mn200m_2').style.zIndex = 402;
+        map.getPane('pane_Vtr4T150mn200m_2').style['mix-blend-mode'] = 'normal';
+        var layer_Vtr4T150mn200m_2 = new L.geoJson(json_Vtr4T150mn200m_2, {
+            attribution: '',
+            interactive: false,
+            dataVar: 'json_Vtr4T150mn200m_2',
+            layerName: 'layer_Vtr4T150mn200m_2',
+            pane: 'pane_Vtr4T150mn200m_2',
+            onEachFeature: pop_Vtr4T150mn200m_2,
+            style: style_Vtr4T150mn200m_2_0,
+        });
+        bounds_group.addLayer(layer_Vtr4T150mn200m_2);
+        map.addLayer(layer_Vtr4T150mn200m_2);
+        function pop_Vtr1TtuynngVnhai4n50m_3(feature, layer) {
+            var popupContent = '<table>\
+                    <tr>\
+                        <th scope="row">id</th>\
+                        <td class="visible-with-data" id="id">' + (feature.properties['id'] !== null ? autolinker.link(String(feature.properties['id']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                </table>';
+            var content = removeEmptyRowsFromPopupContent(popupContent, feature);
+			layer.on('popupopen', function(e) {
+				addClassToPopupIfMedia(content, e.popup);
+			});
+			layer.bindPopup(content, { maxHeight: 400 });
+        }
+
+        function style_Vtr1TtuynngVnhai4n50m_3_0() {
+            return {
+                pane: 'pane_Vtr1TtuynngVnhai4n50m_3',
+                opacity: 1,
+                color: 'rgba(199,13,140,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fillOpacity: 0,
+                interactive: false,
+            }
+        }
+        map.createPane('pane_Vtr1TtuynngVnhai4n50m_3');
+        map.getPane('pane_Vtr1TtuynngVnhai4n50m_3').style.zIndex = 403;
+        map.getPane('pane_Vtr1TtuynngVnhai4n50m_3').style['mix-blend-mode'] = 'normal';
+        var layer_Vtr1TtuynngVnhai4n50m_3 = new L.geoJson(json_Vtr1TtuynngVnhai4n50m_3, {
+            attribution: '',
+            interactive: false,
+            dataVar: 'json_Vtr1TtuynngVnhai4n50m_3',
+            layerName: 'layer_Vtr1TtuynngVnhai4n50m_3',
+            pane: 'pane_Vtr1TtuynngVnhai4n50m_3',
+            onEachFeature: pop_Vtr1TtuynngVnhai4n50m_3,
+            style: style_Vtr1TtuynngVnhai4n50m_3_0,
+        });
+        bounds_group.addLayer(layer_Vtr1TtuynngVnhai4n50m_3);
+        map.addLayer(layer_Vtr1TtuynngVnhai4n50m_3);
+        function pop_Tuynngchnh_4(feature, layer) {
+            var popupContent = '<table>\
+                    <tr>\
+                        <th scope="row">id</th>\
+                        <td class="visible-with-data" id="id">' + (feature.properties['id'] !== null ? autolinker.link(String(feature.properties['id']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">layer</th>\
+                        <td class="visible-with-data" id="layer">' + (feature.properties['layer'] !== null ? autolinker.link(String(feature.properties['layer']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">path</th>\
+                        <td class="visible-with-data" id="path">' + (feature.properties['path'] !== null ? autolinker.link(String(feature.properties['path']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                </table>';
+            var content = removeEmptyRowsFromPopupContent(popupContent, feature);
+			layer.on('popupopen', function(e) {
+				addClassToPopupIfMedia(content, e.popup);
+			});
+			layer.bindPopup(content, { maxHeight: 400 });
+        }
+
+        function style_Tuynngchnh_4_0() {
+            return {
+                pane: 'pane_Tuynngchnh_4',
+                opacity: 1,
+                color: 'rgba(146,93,208,1.0)',
+                dashArray: '',
+                lineCap: 'square',
+                lineJoin: 'bevel',
+                weight: 1.0,
+                fillOpacity: 0,
+                interactive: false,
+            }
+        }
+        map.createPane('pane_Tuynngchnh_4');
+        map.getPane('pane_Tuynngchnh_4').style.zIndex = 404;
+        map.getPane('pane_Tuynngchnh_4').style['mix-blend-mode'] = 'normal';
+        var layer_Tuynngchnh_4 = new L.geoJson(json_Tuynngchnh_4, {
+            attribution: '',
+            interactive: false,
+            dataVar: 'json_Tuynngchnh_4',
+            layerName: 'layer_Tuynngchnh_4',
+            pane: 'pane_Tuynngchnh_4',
+            onEachFeature: pop_Tuynngchnh_4,
+            style: style_Tuynngchnh_4_0,
+        });
+        bounds_group.addLayer(layer_Tuynngchnh_4);
+        map.addLayer(layer_Tuynngchnh_4);
+        function pop_Tuynngvnhai4_5(feature, layer) {
+            var popupContent = '<table>\
+                    <tr>\
+                        <th scope="row">id</th>\
+                        <td class="visible-with-data" id="id">' + (feature.properties['id'] !== null ? autolinker.link(String(feature.properties['id']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">Ten</th>\
+                        <td class="visible-with-data" id="Ten">' + (feature.properties['Ten'] !== null ? autolinker.link(String(feature.properties['Ten']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                </table>';
+            var content = removeEmptyRowsFromPopupContent(popupContent, feature);
+			layer.on('popupopen', function(e) {
+				addClassToPopupIfMedia(content, e.popup);
+			});
+			layer.bindPopup(content, { maxHeight: 400 });
+        }
+
+        function style_Tuynngvnhai4_5_0() {
+            return {
+                pane: 'pane_Tuynngvnhai4_5',
+                opacity: 1,
+                color: 'rgba(168,15,41,1.0)',
+                dashArray: '',
+                lineCap: 'square',
+                lineJoin: 'bevel',
+                weight: 1.0,
+                fillOpacity: 0,
+                interactive: true,
+            }
+        }
+        map.createPane('pane_Tuynngvnhai4_5');
+        map.getPane('pane_Tuynngvnhai4_5').style.zIndex = 405;
+        map.getPane('pane_Tuynngvnhai4_5').style['mix-blend-mode'] = 'normal';
+        var layer_Tuynngvnhai4_5 = new L.geoJson(json_Tuynngvnhai4_5, {
+            attribution: '',
+            interactive: true,
+            dataVar: 'json_Tuynngvnhai4_5',
+            layerName: 'layer_Tuynngvnhai4_5',
+            pane: 'pane_Tuynngvnhai4_5',
+            onEachFeature: pop_Tuynngvnhai4_5,
+            style: style_Tuynngvnhai4_5_0,
+        });
+        bounds_group.addLayer(layer_Tuynngvnhai4_5);
+        map.addLayer(layer_Tuynngvnhai4_5);
+        function pop_Gitbithngvt_6(feature, layer) {
+            var popupContent = '<table>\
+                    <tr>\
+                        <th scope="row">Số TT</th>\
+                        <td class="visible-with-data" id="Số TT">' + (feature.properties['Số TT'] !== null ? autolinker.link(String(feature.properties['Số TT']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">Mã số</th>\
+                        <td class="visible-with-data" id="Mã số">' + (feature.properties['Mã số'] !== null ? autolinker.link(String(feature.properties['Mã số']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">Họ và tên</th>\
+                        <td class="visible-with-data" id="Họ và tên">' + (feature.properties['Họ và tên'] !== null ? autolinker.link(String(feature.properties['Họ và tên']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">Địa chỉ</th>\
+                        <td class="visible-with-data" id="Địa chỉ">' + (feature.properties['Địa chỉ'] !== null ? autolinker.link(String(feature.properties['Địa chỉ']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">Bồi thường, hỗ trợ về đất</th>\
+                        <td class="visible-with-data" id="Bồi thường, hỗ trợ về đất">' + (feature.properties['Bồi thường, hỗ trợ về đất'] !== null ? autolinker.link(String(feature.properties['Bồi thường, hỗ trợ về đất']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">Diện tích thu hồi</th>\
+                        <td class="visible-with-data" id="Diện tích thu hồi">' + (feature.properties['Diện tích thu hồi'] !== null ? autolinker.link(String(feature.properties['Diện tích thu hồi']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">Tổng</th>\
+                        <td class="visible-with-data" id="Tổng">' + (feature.properties['Tổng'] !== null ? autolinker.link(String(feature.properties['Tổng']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">Số tờ bản đồ</th>\
+                        <td class="visible-with-data" id="Số tờ bản đồ">' + (feature.properties['Số tờ bản đồ'] !== null ? autolinker.link(String(feature.properties['Số tờ bản đồ']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">Số thửa</th>\
+                        <td class="visible-with-data" id="Số thửa">' + (feature.properties['Số thửa'] !== null ? autolinker.link(String(feature.properties['Số thửa']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">Tọa độ X</th>\
+                        <td class="visible-with-data" id="Tọa độ X">' + (feature.properties['Tọa độ X'] !== null ? autolinker.link(String(feature.properties['Tọa độ X']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">Tọa độ Y</th>\
+                        <td class="visible-with-data" id="Tọa độ Y">' + (feature.properties['Tọa độ Y'] !== null ? autolinker.link(String(feature.properties['Tọa độ Y']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">X</th>\
+                        <td class="visible-with-data" id="X">' + (feature.properties['X'] !== null ? autolinker.link(String(feature.properties['X']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">y</th>\
+                        <td class="visible-with-data" id="y">' + (feature.properties['y'] !== null ? autolinker.link(String(feature.properties['y']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">Bồi thường. hỗ trợ công trình xây dựng</th>\
+                        <td class="visible-with-data" id="Bồi thường. hỗ trợ công trình xây dựng">' + (feature.properties['Bồi thường. hỗ trợ công trình xây dựng'] !== null ? autolinker.link(String(feature.properties['Bồi thường. hỗ trợ công trình xây dựng']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">Bồi thường công trình phụ. vật kiến trúc</th>\
+                        <td class="visible-with-data" id="Bồi thường công trình phụ. vật kiến trúc">' + (feature.properties['Bồi thường công trình phụ. vật kiến trúc'] !== null ? autolinker.link(String(feature.properties['Bồi thường công trình phụ. vật kiến trúc']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">Bồi thường cây trồng</th>\
+                        <td class="visible-with-data" id="Bồi thường cây trồng">' + (feature.properties['Bồi thường cây trồng'] !== null ? autolinker.link(String(feature.properties['Bồi thường cây trồng']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">Di chuyển mồ mả</th>\
+                        <td class="visible-with-data" id="Di chuyển mồ mả">' + (feature.properties['Di chuyển mồ mả'] !== null ? autolinker.link(String(feature.properties['Di chuyển mồ mả']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">Tổng cộng</th>\
+                        <td class="visible-with-data" id="Tổng cộng">' + (feature.properties['Tổng cộng'] !== null ? autolinker.link(String(feature.properties['Tổng cộng']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">Số GCNQSDĐ</th>\
+                        <td class="visible-with-data" id="Số GCNQSDĐ">' + (feature.properties['Số GCNQSDĐ'] !== null ? autolinker.link(String(feature.properties['Số GCNQSDĐ']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">Ngày. tháng. năm cấp</th>\
+                        <td class="visible-with-data" id="Ngày. tháng. năm cấp">' + (feature.properties['Ngày. tháng. năm cấp'] !== null ? autolinker.link(String(feature.properties['Ngày. tháng. năm cấp']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">Nơi cấp</th>\
+                        <td class="visible-with-data" id="Nơi cấp">' + (feature.properties['Nơi cấp'] !== null ? autolinker.link(String(feature.properties['Nơi cấp']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                </table>';
+            var content = removeEmptyRowsFromPopupContent(popupContent, feature);
+			layer.on('popupopen', function(e) {
+				addClassToPopupIfMedia(content, e.popup);
+			});
+			layer.bindPopup(content, { maxHeight: 400 });
+        }
+
+        function style_Gitbithngvt_6_0(feature) {
+            switch(String(feature.properties['Bồi thường, hỗ trợ về đất'])) {
+                case '2385600.0':
+                    return {
+                pane: 'pane_Gitbithngvt_6',
+                radius: 3.2,
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 2.0,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(212,184,117,1.0)',
+                interactive: false,
+            }
+                    break;
+                case '3498600.0':
+                    return {
+                pane: 'pane_Gitbithngvt_6',
+                radius: 3.2,
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 2.0,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(105,193,231,1.0)',
+                interactive: false,
+            }
+                    break;
+                case '9758500.0':
+                    return {
+                pane: 'pane_Gitbithngvt_6',
+                radius: 3.2,
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 2.0,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(126,224,176,1.0)',
+                interactive: false,
+            }
+                    break;
+                case '56688800.0':
+                    return {
+                pane: 'pane_Gitbithngvt_6',
+                radius: 3.2,
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 2.0,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(34,209,72,1.0)',
+                interactive: false,
+            }
+                    break;
+                case '82236000.0':
+                    return {
+                pane: 'pane_Gitbithngvt_6',
+                radius: 3.2,
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 2.0,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(149,231,41,1.0)',
+                interactive: false,
+            }
+                    break;
+                case '84407600.0':
+                    return {
+                pane: 'pane_Gitbithngvt_6',
+                radius: 3.2,
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 2.0,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(226,91,109,1.0)',
+                interactive: false,
+            }
+                    break;
+                case '118484800.0':
+                    return {
+                pane: 'pane_Gitbithngvt_6',
+                radius: 3.2,
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 2.0,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(221,37,89,1.0)',
+                interactive: false,
+            }
+                    break;
+                case '151157600.0':
+                    return {
+                pane: 'pane_Gitbithngvt_6',
+                radius: 3.2,
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 2.0,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(12,206,77,1.0)',
+                interactive: false,
+            }
+                    break;
+                case '184486400.0':
+                    return {
+                pane: 'pane_Gitbithngvt_6',
+                radius: 3.2,
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 2.0,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(206,206,66,1.0)',
+                interactive: false,
+            }
+                    break;
+                case '187184800.0':
+                    return {
+                pane: 'pane_Gitbithngvt_6',
+                radius: 3.2,
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 2.0,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(236,180,101,1.0)',
+                interactive: false,
+            }
+                    break;
+                case '208722800.0':
+                    return {
+                pane: 'pane_Gitbithngvt_6',
+                radius: 3.2,
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 2.0,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(122,75,209,1.0)',
+                interactive: false,
+            }
+                    break;
+                case '213422000.0':
+                    return {
+                pane: 'pane_Gitbithngvt_6',
+                radius: 3.2,
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 2.0,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(121,181,218,1.0)',
+                interactive: false,
+            }
+                    break;
+                case '290175600.0':
+                    return {
+                pane: 'pane_Gitbithngvt_6',
+                radius: 3.2,
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 2.0,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(102,203,40,1.0)',
+                interactive: false,
+            }
+                    break;
+                case '304024200.0':
+                    return {
+                pane: 'pane_Gitbithngvt_6',
+                radius: 3.2,
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 2.0,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(19,211,163,1.0)',
+                interactive: false,
+            }
+                    break;
+                case '306254100.0':
+                    return {
+                pane: 'pane_Gitbithngvt_6',
+                radius: 3.2,
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 2.0,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(63,77,239,1.0)',
+                interactive: false,
+            }
+                    break;
+                case '367382400.0':
+                    return {
+                pane: 'pane_Gitbithngvt_6',
+                radius: 3.2,
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 2.0,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(130,87,222,1.0)',
+                interactive: false,
+            }
+                    break;
+                case '398257200.0':
+                    return {
+                pane: 'pane_Gitbithngvt_6',
+                radius: 3.2,
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 2.0,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(90,75,205,1.0)',
+                interactive: false,
+            }
+                    break;
+                case '404503500.0':
+                    return {
+                pane: 'pane_Gitbithngvt_6',
+                radius: 3.2,
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 2.0,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(233,81,187,1.0)',
+                interactive: false,
+            }
+                    break;
+                case '471485800.0':
+                    return {
+                pane: 'pane_Gitbithngvt_6',
+                radius: 3.2,
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 2.0,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(238,125,236,1.0)',
+                interactive: false,
+            }
+                    break;
+                case '487144000.0':
+                    return {
+                pane: 'pane_Gitbithngvt_6',
+                radius: 3.2,
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 2.0,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(35,209,171,1.0)',
+                interactive: false,
+            }
+                    break;
+                case '488883800.0':
+                    return {
+                pane: 'pane_Gitbithngvt_6',
+                radius: 3.2,
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 2.0,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(108,110,222,1.0)',
+                interactive: false,
+            }
+                    break;
+                case '547848400.0':
+                    return {
+                pane: 'pane_Gitbithngvt_6',
+                radius: 3.2,
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 2.0,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(133,64,206,1.0)',
+                interactive: false,
+            }
+                    break;
+                case '554996200.0':
+                    return {
+                pane: 'pane_Gitbithngvt_6',
+                radius: 3.2,
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 2.0,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(119,197,214,1.0)',
+                interactive: false,
+            }
+                    break;
+                case '558475800.0':
+                    return {
+                pane: 'pane_Gitbithngvt_6',
+                radius: 3.2,
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 2.0,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(131,105,238,1.0)',
+                interactive: false,
+            }
+                    break;
+                case '589792200.0':
+                    return {
+                pane: 'pane_Gitbithngvt_6',
+                radius: 3.2,
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 2.0,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(75,161,222,1.0)',
+                interactive: false,
+            }
+                    break;
+                case '607045100.0':
+                    return {
+                pane: 'pane_Gitbithngvt_6',
+                radius: 3.2,
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 2.0,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(74,163,207,1.0)',
+                interactive: false,
+            }
+                    break;
+                case '669379500.0':
+                    return {
+                pane: 'pane_Gitbithngvt_6',
+                radius: 3.2,
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 2.0,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(237,25,124,1.0)',
+                interactive: false,
+            }
+                    break;
+                case '710873200.0':
+                    return {
+                pane: 'pane_Gitbithngvt_6',
+                radius: 3.2,
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 2.0,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(46,225,159,1.0)',
+                interactive: false,
+            }
+                    break;
+                case '730334000.0':
+                    return {
+                pane: 'pane_Gitbithngvt_6',
+                radius: 3.2,
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 2.0,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(147,110,203,1.0)',
+                interactive: false,
+            }
+                    break;
+                case '749853800.0':
+                    return {
+                pane: 'pane_Gitbithngvt_6',
+                radius: 3.2,
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 2.0,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(106,196,228,1.0)',
+                interactive: false,
+            }
+                    break;
+                case '753549000.0':
+                    return {
+                pane: 'pane_Gitbithngvt_6',
+                radius: 3.2,
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 2.0,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(158,92,205,1.0)',
+                interactive: false,
+            }
+                    break;
+                case '757298000.0':
+                    return {
+                pane: 'pane_Gitbithngvt_6',
+                radius: 3.2,
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 2.0,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(231,110,182,1.0)',
+                interactive: false,
+            }
+                    break;
+                case '795195000.0':
+                    return {
+                pane: 'pane_Gitbithngvt_6',
+                radius: 3.2,
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 2.0,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(144,238,197,1.0)',
+                interactive: false,
+            }
+                    break;
+                case '802917700.0':
+                    return {
+                pane: 'pane_Gitbithngvt_6',
+                radius: 3.2,
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 2.0,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(228,48,126,1.0)',
+                interactive: false,
+            }
+                    break;
+                case '827648000.0':
+                    return {
+                pane: 'pane_Gitbithngvt_6',
+                radius: 3.2,
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 2.0,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(174,53,214,1.0)',
+                interactive: false,
+            }
+                    break;
+                case '862303200.0':
+                    return {
+                pane: 'pane_Gitbithngvt_6',
+                radius: 3.2,
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 2.0,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(119,201,117,1.0)',
+                interactive: false,
+            }
+                    break;
+                case '871639800.0':
+                    return {
+                pane: 'pane_Gitbithngvt_6',
+                radius: 3.2,
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 2.0,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(134,201,32,1.0)',
+                interactive: false,
+            }
+                    break;
+                case '904696000.0':
+                    return {
+                pane: 'pane_Gitbithngvt_6',
+                radius: 3.2,
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 2.0,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(200,106,180,1.0)',
+                interactive: false,
+            }
+                    break;
+                case '914973400.0':
+                    return {
+                pane: 'pane_Gitbithngvt_6',
+                radius: 3.2,
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 2.0,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(113,77,206,1.0)',
+                interactive: false,
+            }
+                    break;
+                case '954652800.0':
+                    return {
+                pane: 'pane_Gitbithngvt_6',
+                radius: 3.2,
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 2.0,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(120,225,85,1.0)',
+                interactive: false,
+            }
+                    break;
+                case '989585600.0':
+                    return {
+                pane: 'pane_Gitbithngvt_6',
+                radius: 3.2,
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 2.0,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(206,54,57,1.0)',
+                interactive: false,
+            }
+                    break;
+                case '1018756000.0':
+                    return {
+                pane: 'pane_Gitbithngvt_6',
+                radius: 3.2,
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 2.0,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(142,229,79,1.0)',
+                interactive: false,
+            }
+                    break;
+                case '1119082600.0':
+                    return {
+                pane: 'pane_Gitbithngvt_6',
+                radius: 3.2,
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 2.0,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(41,237,198,1.0)',
+                interactive: false,
+            }
+                    break;
+                case '1149737600.0':
+                    return {
+                pane: 'pane_Gitbithngvt_6',
+                radius: 3.2,
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 2.0,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(39,238,125,1.0)',
+                interactive: false,
+            }
+                    break;
+                case '1173579000.0':
+                    return {
+                pane: 'pane_Gitbithngvt_6',
+                radius: 3.2,
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 2.0,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(207,195,28,1.0)',
+                interactive: false,
+            }
+                    break;
+                case '1180045000.0':
+                    return {
+                pane: 'pane_Gitbithngvt_6',
+                radius: 3.2,
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 2.0,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(145,240,191,1.0)',
+                interactive: false,
+            }
+                    break;
+                case '1268000800.0':
+                    return {
+                pane: 'pane_Gitbithngvt_6',
+                radius: 3.2,
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 2.0,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(213,221,70,1.0)',
+                interactive: false,
+            }
+                    break;
+                case '1289131500.0':
+                    return {
+                pane: 'pane_Gitbithngvt_6',
+                radius: 3.2,
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 2.0,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(54,74,229,1.0)',
+                interactive: false,
+            }
+                    break;
+                case '1333429000.0':
+                    return {
+                pane: 'pane_Gitbithngvt_6',
+                radius: 3.2,
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 2.0,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(133,106,223,1.0)',
+                interactive: false,
+            }
+                    break;
+                case '1420724800.0':
+                    return {
+                pane: 'pane_Gitbithngvt_6',
+                radius: 3.2,
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 2.0,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(121,212,123,1.0)',
+                interactive: false,
+            }
+                    break;
+                case '1424896200.0':
+                    return {
+                pane: 'pane_Gitbithngvt_6',
+                radius: 3.2,
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 2.0,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(203,68,102,1.0)',
+                interactive: false,
+            }
+                    break;
+                case '1519156000.0':
+                    return {
+                pane: 'pane_Gitbithngvt_6',
+                radius: 3.2,
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 2.0,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(79,131,215,1.0)',
+                interactive: false,
+            }
+                    break;
+                case '1531773100.0':
+                    return {
+                pane: 'pane_Gitbithngvt_6',
+                radius: 3.2,
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 2.0,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(232,218,65,1.0)',
+                interactive: false,
+            }
+                    break;
+                case '1630588400.0':
+                    return {
+                pane: 'pane_Gitbithngvt_6',
+                radius: 3.2,
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 2.0,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(233,108,79,1.0)',
+                interactive: false,
+            }
+                    break;
+                case '1696559200.0':
+                    return {
+                pane: 'pane_Gitbithngvt_6',
+                radius: 3.2,
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 2.0,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(202,167,111,1.0)',
+                interactive: false,
+            }
+                    break;
+                case '1723154800.0':
+                    return {
+                pane: 'pane_Gitbithngvt_6',
+                radius: 3.2,
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 2.0,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(239,140,133,1.0)',
+                interactive: false,
+            }
+                    break;
+                case '1801241700.0':
+                    return {
+                pane: 'pane_Gitbithngvt_6',
+                radius: 3.2,
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 2.0,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(196,226,130,1.0)',
+                interactive: false,
+            }
+                    break;
+                case '1817670000.0':
+                    return {
+                pane: 'pane_Gitbithngvt_6',
+                radius: 3.2,
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 2.0,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(75,32,205,1.0)',
+                interactive: false,
+            }
+                    break;
+                case '1848841500.0':
+                    return {
+                pane: 'pane_Gitbithngvt_6',
+                radius: 3.2,
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 2.0,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(87,214,83,1.0)',
+                interactive: false,
+            }
+                    break;
+                case '1950315800.0':
+                    return {
+                pane: 'pane_Gitbithngvt_6',
+                radius: 3.2,
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 2.0,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(192,215,65,1.0)',
+                interactive: false,
+            }
+                    break;
+                case '2049484400.0':
+                    return {
+                pane: 'pane_Gitbithngvt_6',
+                radius: 3.2,
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 2.0,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(205,109,92,1.0)',
+                interactive: false,
+            }
+                    break;
+                case '2150056200.0':
+                    return {
+                pane: 'pane_Gitbithngvt_6',
+                radius: 3.2,
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 2.0,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(237,111,205,1.0)',
+                interactive: false,
+            }
+                    break;
+                case '2159401800.0':
+                    return {
+                pane: 'pane_Gitbithngvt_6',
+                radius: 3.2,
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 2.0,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(121,159,202,1.0)',
+                interactive: false,
+            }
+                    break;
+                case '2195429000.0':
+                    return {
+                pane: 'pane_Gitbithngvt_6',
+                radius: 3.2,
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 2.0,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(240,33,74,1.0)',
+                interactive: false,
+            }
+                    break;
+                case '2368212000.0':
+                    return {
+                pane: 'pane_Gitbithngvt_6',
+                radius: 3.2,
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 2.0,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(221,129,163,1.0)',
+                interactive: false,
+            }
+                    break;
+                case '2374736000.0':
+                    return {
+                pane: 'pane_Gitbithngvt_6',
+                radius: 3.2,
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 2.0,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(222,72,233,1.0)',
+                interactive: false,
+            }
+                    break;
+                case '2406348000.0':
+                    return {
+                pane: 'pane_Gitbithngvt_6',
+                radius: 3.2,
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 2.0,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(221,110,110,1.0)',
+                interactive: false,
+            }
+                    break;
+                case '2440549100.0':
+                    return {
+                pane: 'pane_Gitbithngvt_6',
+                radius: 3.2,
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 2.0,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(86,183,210,1.0)',
+                interactive: false,
+            }
+                    break;
+                case '2492400000.0':
+                    return {
+                pane: 'pane_Gitbithngvt_6',
+                radius: 3.2,
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 2.0,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(65,236,39,1.0)',
+                interactive: false,
+            }
+                    break;
+                case '2539917600.0':
+                    return {
+                pane: 'pane_Gitbithngvt_6',
+                radius: 3.2,
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 2.0,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(95,229,227,1.0)',
+                interactive: false,
+            }
+                    break;
+                case '2570782700.0':
+                    return {
+                pane: 'pane_Gitbithngvt_6',
+                radius: 3.2,
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 2.0,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(188,95,207,1.0)',
+                interactive: false,
+            }
+                    break;
+                case '2615172000.0':
+                    return {
+                pane: 'pane_Gitbithngvt_6',
+                radius: 3.2,
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 2.0,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(159,238,79,1.0)',
+                interactive: false,
+            }
+                    break;
+                case '2642340000.0':
+                    return {
+                pane: 'pane_Gitbithngvt_6',
+                radius: 3.2,
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 2.0,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(185,235,128,1.0)',
+                interactive: false,
+            }
+                    break;
+                case '2809338400.0':
+                    return {
+                pane: 'pane_Gitbithngvt_6',
+                radius: 3.2,
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 2.0,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(227,169,93,1.0)',
+                interactive: false,
+            }
+                    break;
+                case '2814232700.0':
+                    return {
+                pane: 'pane_Gitbithngvt_6',
+                radius: 3.2,
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 2.0,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(122,225,227,1.0)',
+                interactive: false,
+            }
+                    break;
+                case '3051934600.0':
+                    return {
+                pane: 'pane_Gitbithngvt_6',
+                radius: 3.2,
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 2.0,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(228,103,65,1.0)',
+                interactive: false,
+            }
+                    break;
+                case '3400830700.0':
+                    return {
+                pane: 'pane_Gitbithngvt_6',
+                radius: 3.2,
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 2.0,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(186,206,85,1.0)',
+                interactive: false,
+            }
+                    break;
+                case '3421256700.0':
+                    return {
+                pane: 'pane_Gitbithngvt_6',
+                radius: 3.2,
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 2.0,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(45,16,212,1.0)',
+                interactive: false,
+            }
+                    break;
+                case '3507003000.0':
+                    return {
+                pane: 'pane_Gitbithngvt_6',
+                radius: 3.2,
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 2.0,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(60,98,223,1.0)',
+                interactive: false,
+            }
+                    break;
+                case '3583052000.0':
+                    return {
+                pane: 'pane_Gitbithngvt_6',
+                radius: 3.2,
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 2.0,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(147,42,216,1.0)',
+                interactive: false,
+            }
+                    break;
+                case '3612664000.0':
+                    return {
+                pane: 'pane_Gitbithngvt_6',
+                radius: 3.2,
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 2.0,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(238,129,61,1.0)',
+                interactive: false,
+            }
+                    break;
+                case '3851917200.0':
+                    return {
+                pane: 'pane_Gitbithngvt_6',
+                radius: 3.2,
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 2.0,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(191,224,108,1.0)',
+                interactive: false,
+            }
+                    break;
+                case '4177252200.0':
+                    return {
+                pane: 'pane_Gitbithngvt_6',
+                radius: 3.2,
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 2.0,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(74,231,179,1.0)',
+                interactive: false,
+            }
+                    break;
+                case '4177800800.0':
+                    return {
+                pane: 'pane_Gitbithngvt_6',
+                radius: 3.2,
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 2.0,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(209,19,123,1.0)',
+                interactive: false,
+            }
+                    break;
+                case '4218643700.0':
+                    return {
+                pane: 'pane_Gitbithngvt_6',
+                radius: 3.2,
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 2.0,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(123,205,146,1.0)',
+                interactive: false,
+            }
+                    break;
+                case '4448072400.0':
+                    return {
+                pane: 'pane_Gitbithngvt_6',
+                radius: 3.2,
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 2.0,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(71,225,127,1.0)',
+                interactive: false,
+            }
+                    break;
+                case '4466066600.0':
+                    return {
+                pane: 'pane_Gitbithngvt_6',
+                radius: 3.2,
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 2.0,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(200,222,110,1.0)',
+                interactive: false,
+            }
+                    break;
+                case '4594646400.0':
+                    return {
+                pane: 'pane_Gitbithngvt_6',
+                radius: 3.2,
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 2.0,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(128,229,236,1.0)',
+                interactive: false,
+            }
+                    break;
+                case '4942750600.0':
+                    return {
+                pane: 'pane_Gitbithngvt_6',
+                radius: 3.2,
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 2.0,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(211,21,186,1.0)',
+                interactive: false,
+            }
+                    break;
+                case '4998868900.0':
+                    return {
+                pane: 'pane_Gitbithngvt_6',
+                radius: 3.2,
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 2.0,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(211,224,68,1.0)',
+                interactive: false,
+            }
+                    break;
+                case '5001123600.0':
+                    return {
+                pane: 'pane_Gitbithngvt_6',
+                radius: 3.2,
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 2.0,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(49,229,58,1.0)',
+                interactive: false,
+            }
+                    break;
+                case '5003588800.0':
+                    return {
+                pane: 'pane_Gitbithngvt_6',
+                radius: 3.2,
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 2.0,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(231,208,34,1.0)',
+                interactive: false,
+            }
+                    break;
+                case '5097614000.0':
+                    return {
+                pane: 'pane_Gitbithngvt_6',
+                radius: 3.2,
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 2.0,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(224,206,135,1.0)',
+                interactive: false,
+            }
+                    break;
+                case '5102254300.0':
+                    return {
+                pane: 'pane_Gitbithngvt_6',
+                radius: 3.2,
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 2.0,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(23,235,200,1.0)',
+                interactive: false,
+            }
+                    break;
+                case '5131064300.0':
+                    return {
+                pane: 'pane_Gitbithngvt_6',
+                radius: 3.2,
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 2.0,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(83,214,201,1.0)',
+                interactive: false,
+            }
+                    break;
+                case '5190234000.0':
+                    return {
+                pane: 'pane_Gitbithngvt_6',
+                radius: 3.2,
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 2.0,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(135,237,84,1.0)',
+                interactive: false,
+            }
+                    break;
+                case '5363642900.0':
+                    return {
+                pane: 'pane_Gitbithngvt_6',
+                radius: 3.2,
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 2.0,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(111,195,204,1.0)',
+                interactive: false,
+            }
+                    break;
+                case '5411937500.0':
+                    return {
+                pane: 'pane_Gitbithngvt_6',
+                radius: 3.2,
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 2.0,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(59,93,230,1.0)',
+                interactive: false,
+            }
+                    break;
+                case '5465363200.0':
+                    return {
+                pane: 'pane_Gitbithngvt_6',
+                radius: 3.2,
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 2.0,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(122,233,110,1.0)',
+                interactive: false,
+            }
+                    break;
+                case '5487733800.0':
+                    return {
+                pane: 'pane_Gitbithngvt_6',
+                radius: 3.2,
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 2.0,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(219,106,177,1.0)',
+                interactive: false,
+            }
+                    break;
+                case '5496307800.0':
+                    return {
+                pane: 'pane_Gitbithngvt_6',
+                radius: 3.2,
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 2.0,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(215,98,85,1.0)',
+                interactive: false,
+            }
+                    break;
+                case '5646101000.0':
+                    return {
+                pane: 'pane_Gitbithngvt_6',
+                radius: 3.2,
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 2.0,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(88,155,219,1.0)',
+                interactive: false,
+            }
+                    break;
+                case '5666339700.0':
+                    return {
+                pane: 'pane_Gitbithngvt_6',
+                radius: 3.2,
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 2.0,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(151,201,122,1.0)',
+                interactive: false,
+            }
+                    break;
+                case '5677906300.0':
+                    return {
+                pane: 'pane_Gitbithngvt_6',
+                radius: 3.2,
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 2.0,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(232,25,60,1.0)',
+                interactive: false,
+            }
+                    break;
+                case '5782686000.0':
+                    return {
+                pane: 'pane_Gitbithngvt_6',
+                radius: 3.2,
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 2.0,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(130,239,139,1.0)',
+                interactive: false,
+            }
+                    break;
+                case '5941983600.0':
+                    return {
+                pane: 'pane_Gitbithngvt_6',
+                radius: 3.2,
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 2.0,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(217,130,54,1.0)',
+                interactive: false,
+            }
+                    break;
+                case '6041996400.0':
+                    return {
+                pane: 'pane_Gitbithngvt_6',
+                radius: 3.2,
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 2.0,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(221,128,62,1.0)',
+                interactive: false,
+            }
+                    break;
+                case '6266519000.0':
+                    return {
+                pane: 'pane_Gitbithngvt_6',
+                radius: 3.2,
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 2.0,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(64,232,131,1.0)',
+                interactive: false,
+            }
+                    break;
+                case '6268918800.0':
+                    return {
+                pane: 'pane_Gitbithngvt_6',
+                radius: 3.2,
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 2.0,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(183,20,201,1.0)',
+                interactive: false,
+            }
+                    break;
+                case '6513137000.0':
+                    return {
+                pane: 'pane_Gitbithngvt_6',
+                radius: 3.2,
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 2.0,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(229,234,90,1.0)',
+                interactive: false,
+            }
+                    break;
+                case '6969276800.0':
+                    return {
+                pane: 'pane_Gitbithngvt_6',
+                radius: 3.2,
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 2.0,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(203,119,152,1.0)',
+                interactive: false,
+            }
+                    break;
+                case '6995162000.0':
+                    return {
+                pane: 'pane_Gitbithngvt_6',
+                radius: 3.2,
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 2.0,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(133,203,227,1.0)',
+                interactive: false,
+            }
+                    break;
+                case '7006262200.0':
+                    return {
+                pane: 'pane_Gitbithngvt_6',
+                radius: 3.2,
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 2.0,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(49,214,101,1.0)',
+                interactive: false,
+            }
+                    break;
+                case '7620108300.0':
+                    return {
+                pane: 'pane_Gitbithngvt_6',
+                radius: 3.2,
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 2.0,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(115,225,229,1.0)',
+                interactive: false,
+            }
+                    break;
+                case '7754542600.0':
+                    return {
+                pane: 'pane_Gitbithngvt_6',
+                radius: 3.2,
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 2.0,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(219,111,167,1.0)',
+                interactive: false,
+            }
+                    break;
+                case '7779543500.0':
+                    return {
+                pane: 'pane_Gitbithngvt_6',
+                radius: 3.2,
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 2.0,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(199,237,96,1.0)',
+                interactive: false,
+            }
+                    break;
+                case '8497120500.0':
+                    return {
+                pane: 'pane_Gitbithngvt_6',
+                radius: 3.2,
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 2.0,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(207,221,98,1.0)',
+                interactive: false,
+            }
+                    break;
+                case '8531414400.0':
+                    return {
+                pane: 'pane_Gitbithngvt_6',
+                radius: 3.2,
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 2.0,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(46,240,95,1.0)',
+                interactive: false,
+            }
+                    break;
+                case '8769196700.0':
+                    return {
+                pane: 'pane_Gitbithngvt_6',
+                radius: 3.2,
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 2.0,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(197,231,135,1.0)',
+                interactive: false,
+            }
+                    break;
+                case '8778693000.0':
+                    return {
+                pane: 'pane_Gitbithngvt_6',
+                radius: 3.2,
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 2.0,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(178,56,239,1.0)',
+                interactive: false,
+            }
+                    break;
+                case '8779502000.0':
+                    return {
+                pane: 'pane_Gitbithngvt_6',
+                radius: 3.2,
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 2.0,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(213,208,58,1.0)',
+                interactive: false,
+            }
+                    break;
+                case '8831265300.0':
+                    return {
+                pane: 'pane_Gitbithngvt_6',
+                radius: 3.2,
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 2.0,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(204,88,98,1.0)',
+                interactive: false,
+            }
+                    break;
+                case '8938661600.0':
+                    return {
+                pane: 'pane_Gitbithngvt_6',
+                radius: 3.2,
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 2.0,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(203,90,205,1.0)',
+                interactive: false,
+            }
+                    break;
+                case '10122593000.0':
+                    return {
+                pane: 'pane_Gitbithngvt_6',
+                radius: 3.2,
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 2.0,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(139,100,207,1.0)',
+                interactive: false,
+            }
+                    break;
+                case '11310855500.0':
+                    return {
+                pane: 'pane_Gitbithngvt_6',
+                radius: 3.2,
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 2.0,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(232,162,125,1.0)',
+                interactive: false,
+            }
+                    break;
+                case '11772116000.0':
+                    return {
+                pane: 'pane_Gitbithngvt_6',
+                radius: 3.2,
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 2.0,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(76,59,232,1.0)',
+                interactive: false,
+            }
+                    break;
+                case '11935256000.0':
+                    return {
+                pane: 'pane_Gitbithngvt_6',
+                radius: 3.2,
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 2.0,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(34,210,69,1.0)',
+                interactive: false,
+            }
+                    break;
+                case '12230765500.0':
+                    return {
+                pane: 'pane_Gitbithngvt_6',
+                radius: 3.2,
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 2.0,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(201,171,107,1.0)',
+                interactive: false,
+            }
+                    break;
+                case '12551955400.0':
+                    return {
+                pane: 'pane_Gitbithngvt_6',
+                radius: 3.2,
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 2.0,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(105,147,209,1.0)',
+                interactive: false,
+            }
+                    break;
+                case '13211488800.0':
+                    return {
+                pane: 'pane_Gitbithngvt_6',
+                radius: 3.2,
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 2.0,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(211,24,33,1.0)',
+                interactive: false,
+            }
+                    break;
+                case '13917779200.0':
+                    return {
+                pane: 'pane_Gitbithngvt_6',
+                radius: 3.2,
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 2.0,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(236,84,132,1.0)',
+                interactive: false,
+            }
+                    break;
+                case '14067698000.0':
+                    return {
+                pane: 'pane_Gitbithngvt_6',
+                radius: 3.2,
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 2.0,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(36,44,203,1.0)',
+                interactive: false,
+            }
+                    break;
+                case '14246659100.0':
+                    return {
+                pane: 'pane_Gitbithngvt_6',
+                radius: 3.2,
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 2.0,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(60,227,174,1.0)',
+                interactive: false,
+            }
+                    break;
+                case '14690681000.0':
+                    return {
+                pane: 'pane_Gitbithngvt_6',
+                radius: 3.2,
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 2.0,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(16,192,223,1.0)',
+                interactive: false,
+            }
+                    break;
+                case '14747674100.0':
+                    return {
+                pane: 'pane_Gitbithngvt_6',
+                radius: 3.2,
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 2.0,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(231,109,123,1.0)',
+                interactive: false,
+            }
+                    break;
+                case '14965777200.0':
+                    return {
+                pane: 'pane_Gitbithngvt_6',
+                radius: 3.2,
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 2.0,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(15,206,34,1.0)',
+                interactive: false,
+            }
+                    break;
+                case '16219836300.0':
+                    return {
+                pane: 'pane_Gitbithngvt_6',
+                radius: 3.2,
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 2.0,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(111,107,218,1.0)',
+                interactive: false,
+            }
+                    break;
+                case '16720145200.0':
+                    return {
+                pane: 'pane_Gitbithngvt_6',
+                radius: 3.2,
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 2.0,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(166,232,113,1.0)',
+                interactive: false,
+            }
+                    break;
+                case '23642252000.0':
+                    return {
+                pane: 'pane_Gitbithngvt_6',
+                radius: 3.2,
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 2.0,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(129,240,104,1.0)',
+                interactive: false,
+            }
+                    break;
+                case '27259717100.0':
+                    return {
+                pane: 'pane_Gitbithngvt_6',
+                radius: 3.2,
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 2.0,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(174,227,124,1.0)',
+                interactive: false,
+            }
+                    break;
+                case '34439536300.0':
+                    return {
+                pane: 'pane_Gitbithngvt_6',
+                radius: 3.2,
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 2.0,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(94,212,196,1.0)',
+                interactive: false,
+            }
+                    break;
+            }
+        }
+        map.createPane('pane_Gitbithngvt_6');
+        map.getPane('pane_Gitbithngvt_6').style.zIndex = 406;
+        map.getPane('pane_Gitbithngvt_6').style['mix-blend-mode'] = 'normal';
+        var layer_Gitbithngvt_6 = new L.geoJson(json_Gitbithngvt_6, {
+            attribution: '',
+            interactive: false,
+            dataVar: 'json_Gitbithngvt_6',
+            layerName: 'layer_Gitbithngvt_6',
+            pane: 'pane_Gitbithngvt_6',
+            onEachFeature: pop_Gitbithngvt_6,
+            pointToLayer: function (feature, latlng) {
+                var context = {
+                    feature: feature,
+                    variables: {}
+                };
+                return L.circleMarker(latlng, style_Gitbithngvt_6_0(feature));
+            },
+        });
+        bounds_group.addLayer(layer_Gitbithngvt_6);
+        map.addLayer(layer_Gitbithngvt_6);
+        var overlaysTree = [
+            {label: 'Giá đất bồi thường về đất <br /><table><tr><td style="text-align: center;"><img src="legend/Gitbithngvt_6_23856000.png" /></td><td>2385600</td></tr><tr><td style="text-align: center;"><img src="legend/Gitbithngvt_6_34986001.png" /></td><td>3498600</td></tr><tr><td style="text-align: center;"><img src="legend/Gitbithngvt_6_97585002.png" /></td><td>9758500</td></tr><tr><td style="text-align: center;"><img src="legend/Gitbithngvt_6_566888003.png" /></td><td>56688800</td></tr><tr><td style="text-align: center;"><img src="legend/Gitbithngvt_6_822360004.png" /></td><td>82236000</td></tr><tr><td style="text-align: center;"><img src="legend/Gitbithngvt_6_844076005.png" /></td><td>84407600</td></tr><tr><td style="text-align: center;"><img src="legend/Gitbithngvt_6_1184848006.png" /></td><td>118484800</td></tr><tr><td style="text-align: center;"><img src="legend/Gitbithngvt_6_1511576007.png" /></td><td>151157600</td></tr><tr><td style="text-align: center;"><img src="legend/Gitbithngvt_6_1844864008.png" /></td><td>184486400</td></tr><tr><td style="text-align: center;"><img src="legend/Gitbithngvt_6_1871848009.png" /></td><td>187184800</td></tr><tr><td style="text-align: center;"><img src="legend/Gitbithngvt_6_20872280010.png" /></td><td>208722800</td></tr><tr><td style="text-align: center;"><img src="legend/Gitbithngvt_6_21342200011.png" /></td><td>213422000</td></tr><tr><td style="text-align: center;"><img src="legend/Gitbithngvt_6_29017560012.png" /></td><td>290175600</td></tr><tr><td style="text-align: center;"><img src="legend/Gitbithngvt_6_30402420013.png" /></td><td>304024200</td></tr><tr><td style="text-align: center;"><img src="legend/Gitbithngvt_6_30625410014.png" /></td><td>306254100</td></tr><tr><td style="text-align: center;"><img src="legend/Gitbithngvt_6_36738240015.png" /></td><td>367382400</td></tr><tr><td style="text-align: center;"><img src="legend/Gitbithngvt_6_39825720016.png" /></td><td>398257200</td></tr><tr><td style="text-align: center;"><img src="legend/Gitbithngvt_6_40450350017.png" /></td><td>404503500</td></tr><tr><td style="text-align: center;"><img src="legend/Gitbithngvt_6_47148580018.png" /></td><td>471485800</td></tr><tr><td style="text-align: center;"><img src="legend/Gitbithngvt_6_48714400019.png" /></td><td>487144000</td></tr><tr><td style="text-align: center;"><img src="legend/Gitbithngvt_6_48888380020.png" /></td><td>488883800</td></tr><tr><td style="text-align: center;"><img src="legend/Gitbithngvt_6_54784840021.png" /></td><td>547848400</td></tr><tr><td style="text-align: center;"><img src="legend/Gitbithngvt_6_55499620022.png" /></td><td>554996200</td></tr><tr><td style="text-align: center;"><img src="legend/Gitbithngvt_6_55847580023.png" /></td><td>558475800</td></tr><tr><td style="text-align: center;"><img src="legend/Gitbithngvt_6_58979220024.png" /></td><td>589792200</td></tr><tr><td style="text-align: center;"><img src="legend/Gitbithngvt_6_60704510025.png" /></td><td>607045100</td></tr><tr><td style="text-align: center;"><img src="legend/Gitbithngvt_6_66937950026.png" /></td><td>669379500</td></tr><tr><td style="text-align: center;"><img src="legend/Gitbithngvt_6_71087320027.png" /></td><td>710873200</td></tr><tr><td style="text-align: center;"><img src="legend/Gitbithngvt_6_73033400028.png" /></td><td>730334000</td></tr><tr><td style="text-align: center;"><img src="legend/Gitbithngvt_6_74985380029.png" /></td><td>749853800</td></tr><tr><td style="text-align: center;"><img src="legend/Gitbithngvt_6_75354900030.png" /></td><td>753549000</td></tr><tr><td style="text-align: center;"><img src="legend/Gitbithngvt_6_75729800031.png" /></td><td>757298000</td></tr><tr><td style="text-align: center;"><img src="legend/Gitbithngvt_6_79519500032.png" /></td><td>795195000</td></tr><tr><td style="text-align: center;"><img src="legend/Gitbithngvt_6_80291770033.png" /></td><td>802917700</td></tr><tr><td style="text-align: center;"><img src="legend/Gitbithngvt_6_82764800034.png" /></td><td>827648000</td></tr><tr><td style="text-align: center;"><img src="legend/Gitbithngvt_6_86230320035.png" /></td><td>862303200</td></tr><tr><td style="text-align: center;"><img src="legend/Gitbithngvt_6_87163980036.png" /></td><td>871639800</td></tr><tr><td style="text-align: center;"><img src="legend/Gitbithngvt_6_90469600037.png" /></td><td>904696000</td></tr><tr><td style="text-align: center;"><img src="legend/Gitbithngvt_6_91497340038.png" /></td><td>914973400</td></tr><tr><td style="text-align: center;"><img src="legend/Gitbithngvt_6_95465280039.png" /></td><td>954652800</td></tr><tr><td style="text-align: center;"><img src="legend/Gitbithngvt_6_98958560040.png" /></td><td>989585600</td></tr><tr><td style="text-align: center;"><img src="legend/Gitbithngvt_6_101875600041.png" /></td><td>1018756000</td></tr><tr><td style="text-align: center;"><img src="legend/Gitbithngvt_6_111908260042.png" /></td><td>1119082600</td></tr><tr><td style="text-align: center;"><img src="legend/Gitbithngvt_6_114973760043.png" /></td><td>1149737600</td></tr><tr><td style="text-align: center;"><img src="legend/Gitbithngvt_6_117357900044.png" /></td><td>1173579000</td></tr><tr><td style="text-align: center;"><img src="legend/Gitbithngvt_6_118004500045.png" /></td><td>1180045000</td></tr><tr><td style="text-align: center;"><img src="legend/Gitbithngvt_6_126800080046.png" /></td><td>1268000800</td></tr><tr><td style="text-align: center;"><img src="legend/Gitbithngvt_6_128913150047.png" /></td><td>1289131500</td></tr><tr><td style="text-align: center;"><img src="legend/Gitbithngvt_6_133342900048.png" /></td><td>1333429000</td></tr><tr><td style="text-align: center;"><img src="legend/Gitbithngvt_6_142072480049.png" /></td><td>1420724800</td></tr><tr><td style="text-align: center;"><img src="legend/Gitbithngvt_6_142489620050.png" /></td><td>1424896200</td></tr><tr><td style="text-align: center;"><img src="legend/Gitbithngvt_6_151915600051.png" /></td><td>1519156000</td></tr><tr><td style="text-align: center;"><img src="legend/Gitbithngvt_6_153177310052.png" /></td><td>1531773100</td></tr><tr><td style="text-align: center;"><img src="legend/Gitbithngvt_6_163058840053.png" /></td><td>1630588400</td></tr><tr><td style="text-align: center;"><img src="legend/Gitbithngvt_6_169655920054.png" /></td><td>1696559200</td></tr><tr><td style="text-align: center;"><img src="legend/Gitbithngvt_6_172315480055.png" /></td><td>1723154800</td></tr><tr><td style="text-align: center;"><img src="legend/Gitbithngvt_6_180124170056.png" /></td><td>1801241700</td></tr><tr><td style="text-align: center;"><img src="legend/Gitbithngvt_6_181767000057.png" /></td><td>1817670000</td></tr><tr><td style="text-align: center;"><img src="legend/Gitbithngvt_6_184884150058.png" /></td><td>1848841500</td></tr><tr><td style="text-align: center;"><img src="legend/Gitbithngvt_6_195031580059.png" /></td><td>1950315800</td></tr><tr><td style="text-align: center;"><img src="legend/Gitbithngvt_6_204948440060.png" /></td><td>2049484400</td></tr><tr><td style="text-align: center;"><img src="legend/Gitbithngvt_6_215005620061.png" /></td><td>2150056200</td></tr><tr><td style="text-align: center;"><img src="legend/Gitbithngvt_6_215940180062.png" /></td><td>2159401800</td></tr><tr><td style="text-align: center;"><img src="legend/Gitbithngvt_6_219542900063.png" /></td><td>2195429000</td></tr><tr><td style="text-align: center;"><img src="legend/Gitbithngvt_6_236821200064.png" /></td><td>2368212000</td></tr><tr><td style="text-align: center;"><img src="legend/Gitbithngvt_6_237473600065.png" /></td><td>2374736000</td></tr><tr><td style="text-align: center;"><img src="legend/Gitbithngvt_6_240634800066.png" /></td><td>2406348000</td></tr><tr><td style="text-align: center;"><img src="legend/Gitbithngvt_6_244054910067.png" /></td><td>2440549100</td></tr><tr><td style="text-align: center;"><img src="legend/Gitbithngvt_6_249240000068.png" /></td><td>2492400000</td></tr><tr><td style="text-align: center;"><img src="legend/Gitbithngvt_6_253991760069.png" /></td><td>2539917600</td></tr><tr><td style="text-align: center;"><img src="legend/Gitbithngvt_6_257078270070.png" /></td><td>2570782700</td></tr><tr><td style="text-align: center;"><img src="legend/Gitbithngvt_6_261517200071.png" /></td><td>2615172000</td></tr><tr><td style="text-align: center;"><img src="legend/Gitbithngvt_6_264234000072.png" /></td><td>2642340000</td></tr><tr><td style="text-align: center;"><img src="legend/Gitbithngvt_6_280933840073.png" /></td><td>2809338400</td></tr><tr><td style="text-align: center;"><img src="legend/Gitbithngvt_6_281423270074.png" /></td><td>2814232700</td></tr><tr><td style="text-align: center;"><img src="legend/Gitbithngvt_6_305193460075.png" /></td><td>3051934600</td></tr><tr><td style="text-align: center;"><img src="legend/Gitbithngvt_6_340083070076.png" /></td><td>3400830700</td></tr><tr><td style="text-align: center;"><img src="legend/Gitbithngvt_6_342125670077.png" /></td><td>3421256700</td></tr><tr><td style="text-align: center;"><img src="legend/Gitbithngvt_6_350700300078.png" /></td><td>3507003000</td></tr><tr><td style="text-align: center;"><img src="legend/Gitbithngvt_6_358305200079.png" /></td><td>3583052000</td></tr><tr><td style="text-align: center;"><img src="legend/Gitbithngvt_6_361266400080.png" /></td><td>3612664000</td></tr><tr><td style="text-align: center;"><img src="legend/Gitbithngvt_6_385191720081.png" /></td><td>3851917200</td></tr><tr><td style="text-align: center;"><img src="legend/Gitbithngvt_6_417725220082.png" /></td><td>4177252200</td></tr><tr><td style="text-align: center;"><img src="legend/Gitbithngvt_6_417780080083.png" /></td><td>4177800800</td></tr><tr><td style="text-align: center;"><img src="legend/Gitbithngvt_6_421864370084.png" /></td><td>4218643700</td></tr><tr><td style="text-align: center;"><img src="legend/Gitbithngvt_6_444807240085.png" /></td><td>4448072400</td></tr><tr><td style="text-align: center;"><img src="legend/Gitbithngvt_6_446606660086.png" /></td><td>4466066600</td></tr><tr><td style="text-align: center;"><img src="legend/Gitbithngvt_6_459464640087.png" /></td><td>4594646400</td></tr><tr><td style="text-align: center;"><img src="legend/Gitbithngvt_6_494275060088.png" /></td><td>4942750600</td></tr><tr><td style="text-align: center;"><img src="legend/Gitbithngvt_6_499886890089.png" /></td><td>4998868900</td></tr><tr><td style="text-align: center;"><img src="legend/Gitbithngvt_6_500112360090.png" /></td><td>5001123600</td></tr><tr><td style="text-align: center;"><img src="legend/Gitbithngvt_6_500358880091.png" /></td><td>5003588800</td></tr><tr><td style="text-align: center;"><img src="legend/Gitbithngvt_6_509761400092.png" /></td><td>5097614000</td></tr><tr><td style="text-align: center;"><img src="legend/Gitbithngvt_6_510225430093.png" /></td><td>5102254300</td></tr><tr><td style="text-align: center;"><img src="legend/Gitbithngvt_6_513106430094.png" /></td><td>5131064300</td></tr><tr><td style="text-align: center;"><img src="legend/Gitbithngvt_6_519023400095.png" /></td><td>5190234000</td></tr><tr><td style="text-align: center;"><img src="legend/Gitbithngvt_6_536364290096.png" /></td><td>5363642900</td></tr><tr><td style="text-align: center;"><img src="legend/Gitbithngvt_6_541193750097.png" /></td><td>5411937500</td></tr><tr><td style="text-align: center;"><img src="legend/Gitbithngvt_6_546536320098.png" /></td><td>5465363200</td></tr><tr><td style="text-align: center;"><img src="legend/Gitbithngvt_6_548773380099.png" /></td><td>5487733800</td></tr><tr><td style="text-align: center;"><img src="legend/Gitbithngvt_6_5496307800100.png" /></td><td>5496307800</td></tr><tr><td style="text-align: center;"><img src="legend/Gitbithngvt_6_5646101000101.png" /></td><td>5646101000</td></tr><tr><td style="text-align: center;"><img src="legend/Gitbithngvt_6_5666339700102.png" /></td><td>5666339700</td></tr><tr><td style="text-align: center;"><img src="legend/Gitbithngvt_6_5677906300103.png" /></td><td>5677906300</td></tr><tr><td style="text-align: center;"><img src="legend/Gitbithngvt_6_5782686000104.png" /></td><td>5782686000</td></tr><tr><td style="text-align: center;"><img src="legend/Gitbithngvt_6_5941983600105.png" /></td><td>5941983600</td></tr><tr><td style="text-align: center;"><img src="legend/Gitbithngvt_6_6041996400106.png" /></td><td>6041996400</td></tr><tr><td style="text-align: center;"><img src="legend/Gitbithngvt_6_6266519000107.png" /></td><td>6266519000</td></tr><tr><td style="text-align: center;"><img src="legend/Gitbithngvt_6_6268918800108.png" /></td><td>6268918800</td></tr><tr><td style="text-align: center;"><img src="legend/Gitbithngvt_6_6513137000109.png" /></td><td>6513137000</td></tr><tr><td style="text-align: center;"><img src="legend/Gitbithngvt_6_6969276800110.png" /></td><td>6969276800</td></tr><tr><td style="text-align: center;"><img src="legend/Gitbithngvt_6_6995162000111.png" /></td><td>6995162000</td></tr><tr><td style="text-align: center;"><img src="legend/Gitbithngvt_6_7006262200112.png" /></td><td>7006262200</td></tr><tr><td style="text-align: center;"><img src="legend/Gitbithngvt_6_7620108300113.png" /></td><td>7620108300</td></tr><tr><td style="text-align: center;"><img src="legend/Gitbithngvt_6_7754542600114.png" /></td><td>7754542600</td></tr><tr><td style="text-align: center;"><img src="legend/Gitbithngvt_6_7779543500115.png" /></td><td>7779543500</td></tr><tr><td style="text-align: center;"><img src="legend/Gitbithngvt_6_8497120500116.png" /></td><td>8497120500</td></tr><tr><td style="text-align: center;"><img src="legend/Gitbithngvt_6_8531414400117.png" /></td><td>8531414400</td></tr><tr><td style="text-align: center;"><img src="legend/Gitbithngvt_6_8769196700118.png" /></td><td>8769196700</td></tr><tr><td style="text-align: center;"><img src="legend/Gitbithngvt_6_8778693000119.png" /></td><td>8778693000</td></tr><tr><td style="text-align: center;"><img src="legend/Gitbithngvt_6_8779502000120.png" /></td><td>8779502000</td></tr><tr><td style="text-align: center;"><img src="legend/Gitbithngvt_6_8831265300121.png" /></td><td>8831265300</td></tr><tr><td style="text-align: center;"><img src="legend/Gitbithngvt_6_8938661600122.png" /></td><td>8938661600</td></tr><tr><td style="text-align: center;"><img src="legend/Gitbithngvt_6_10122593000123.png" /></td><td>10122593000</td></tr><tr><td style="text-align: center;"><img src="legend/Gitbithngvt_6_11310855500124.png" /></td><td>11310855500</td></tr><tr><td style="text-align: center;"><img src="legend/Gitbithngvt_6_11772116000125.png" /></td><td>11772116000</td></tr><tr><td style="text-align: center;"><img src="legend/Gitbithngvt_6_11935256000126.png" /></td><td>11935256000</td></tr><tr><td style="text-align: center;"><img src="legend/Gitbithngvt_6_12230765500127.png" /></td><td>12230765500</td></tr><tr><td style="text-align: center;"><img src="legend/Gitbithngvt_6_12551955400128.png" /></td><td>12551955400</td></tr><tr><td style="text-align: center;"><img src="legend/Gitbithngvt_6_13211488800129.png" /></td><td>13211488800</td></tr><tr><td style="text-align: center;"><img src="legend/Gitbithngvt_6_13917779200130.png" /></td><td>13917779200</td></tr><tr><td style="text-align: center;"><img src="legend/Gitbithngvt_6_14067698000131.png" /></td><td>14067698000</td></tr><tr><td style="text-align: center;"><img src="legend/Gitbithngvt_6_14246659100132.png" /></td><td>14246659100</td></tr><tr><td style="text-align: center;"><img src="legend/Gitbithngvt_6_14690681000133.png" /></td><td>14690681000</td></tr><tr><td style="text-align: center;"><img src="legend/Gitbithngvt_6_14747674100134.png" /></td><td>14747674100</td></tr><tr><td style="text-align: center;"><img src="legend/Gitbithngvt_6_14965777200135.png" /></td><td>14965777200</td></tr><tr><td style="text-align: center;"><img src="legend/Gitbithngvt_6_16219836300136.png" /></td><td>16219836300</td></tr><tr><td style="text-align: center;"><img src="legend/Gitbithngvt_6_16720145200137.png" /></td><td>16720145200</td></tr><tr><td style="text-align: center;"><img src="legend/Gitbithngvt_6_23642252000138.png" /></td><td>23642252000</td></tr><tr><td style="text-align: center;"><img src="legend/Gitbithngvt_6_27259717100139.png" /></td><td>27259717100</td></tr><tr><td style="text-align: center;"><img src="legend/Gitbithngvt_6_34439536300140.png" /></td><td>34439536300</td></tr></table>', layer: layer_Gitbithngvt_6},
+            {label: '<img src="legend/Tuynngvnhai4_5.png" /> Tuyến đường vành đai 4', layer: layer_Tuynngvnhai4_5},
+            {label: '<img src="legend/Tuynngchnh_4.png" /> Tuyến đường chính', layer: layer_Tuynngchnh_4},
+            {label: '<img src="legend/Vtr1TtuynngVnhai4n50m_3.png" /> Vị trí 1 Từ tuyến đường Vành đai 4 đến 50m', layer: layer_Vtr1TtuynngVnhai4n50m_3},
+            {label: '<img src="legend/Vtr4T150mn200m_2.png" /> Vị trí 4 Từ 150m đến 200m', layer: layer_Vtr4T150mn200m_2},
+            {label: "IDW_Giá đất1", layer: layer_IDW_Git1_1},
+            {label: '<img src="legend/PhngHaLi_0.png" /> Phường Hòa Lợi', layer: layer_PhngHaLi_0},]
+        var lay = L.control.layers.tree(null, overlaysTree,{
+            //namedToggle: true,
+            //selectorBack: false,
+            //closedSymbol: '&#8862; &#x1f5c0;',
+            //openedSymbol: '&#8863; &#x1f5c1;',
+            //collapseAll: 'Collapse all',
+            //expandAll: 'Expand all',
+            collapsed: true,
+        });
+        lay.addTo(map);
+        setBounds();
+        var i = 0;
+        layer_Tuynngchnh_4.eachLayer(function(layer) {
+            var context = {
+                feature: layer.feature,
+                variables: {}
+            };
+            layer.bindTooltip((layer.feature.properties['id'] !== null?String('<div style="color: #323232; font-size: 10pt; font-family: \'Open Sans\', sans-serif;">' + layer.feature.properties['id']) + '</div>':''), {permanent: true, offset: [-0, -16], className: 'css_Tuynngchnh_4'});
+            labels.push(layer);
+            totalMarkers += 1;
+              layer.added = true;
+              addLabel(layer, i);
+              i++;
+        });
+        var i = 0;
+        layer_Gitbithngvt_6.eachLayer(function(layer) {
+            var context = {
+                feature: layer.feature,
+                variables: {}
+            };
+            layer.bindTooltip((layer.feature.properties['Tổng'] !== null?String('<div style="color: #000000; font-size: 10pt; font-family: \'MS Shell Dlg 2\', sans-serif;">' + layer.feature.properties['Tổng']) + '</div>':''), {permanent: true, offset: [-0, -16], className: 'css_Gitbithngvt_6'});
+            labels.push(layer);
+            totalMarkers += 1;
+              layer.added = true;
+              addLabel(layer, i);
+              i++;
+        });
+        L.ImageOverlay.include({
+            getBounds: function () {
+                return this._bounds;
+            }
+        });
+        resetLabels([layer_Tuynngchnh_4,layer_Gitbithngvt_6]);
+        map.on("zoomend", function(){
+            resetLabels([layer_Tuynngchnh_4,layer_Gitbithngvt_6]);
+        });
+        map.on("layeradd", function(){
+            resetLabels([layer_Tuynngchnh_4,layer_Gitbithngvt_6]);
+        });
+        map.on("layerremove", function(){
+            resetLabels([layer_Tuynngchnh_4,layer_Gitbithngvt_6]);
+        });
+        </script>        
+    </body>
+</html>
